@@ -192,56 +192,98 @@ body:not(.is-loading) {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 9999;
   background: #000000;
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 9999;
 }
-body.initial-loading {
-  overflow: hidden !important;
+
+#loading-box.hidden {
+  display: none !important;
 }
-</style><script>// 只在首次访问时显示加载动画
-if(!sessionStorage.getItem('firstLoadCompleted')) {
-  document.body.classList.add('initial-loading');
+
+body.page-loading {
+  overflow: hidden;
+  height: 100vh;
+}
+
+body.page-loaded {
+  overflow: auto;
+}
+</style><script>// 只在第一次访问时显示加载动画
+if (!sessionStorage.getItem('firstLoadDone')) {
+  
+  // 设置加载状态
+  document.body.classList.add('page-loading');
   document.body.style.overflow = 'hidden';
   
-  let isFinished = false;
+  // 确保加载框在最上层
+  const loadingBox = document.getElementById('loading-box');
+  loadingBox.style.display = 'flex';
+  loadingBox.style.pointerEvents = 'auto';
   
-  function finishLoading() {
-    if(isFinished) return;
-    isFinished = true;
+  let loadingFinished = false;
+  
+  function completeLoading() {
+    if (loadingFinished) return;
+    loadingFinished = true;
     
-    document.body.classList.remove('initial-loading');
+    // 标记首次加载完成
+    sessionStorage.setItem('firstLoadDone', 'true');
+    
+    // 移除加载状态
+    document.body.classList.remove('page-loading');
+    document.body.classList.add('page-loaded');
     document.body.style.overflow = 'auto';
     
-    const loadingBox = document.getElementById('loading-box');
-    if(loadingBox) {
-      loadingBox.style.opacity = '0';
-      loadingBox.style.transition = 'opacity 0.3s ease';
-      
-      setTimeout(() => {
-        loadingBox.style.display = 'none';
-      }, 300);
-    }
+    // 隐藏加载动画
+    loadingBox.style.opacity = '0';
+    loadingBox.style.transition = 'opacity 0.3s ease';
     
-    // 标记首次加载已完成
-    sessionStorage.setItem('firstLoadCompleted', 'true');
+    setTimeout(() => {
+      loadingBox.classList.add('hidden');
+      loadingBox.style.display = 'none';
+      loadingBox.style.pointerEvents = 'none';
+      loadingBox.style.zIndex = '-1';
+      
+      // 确保页面所有元素都可点击
+      document.body.style.pointerEvents = 'auto';
+      const allElements = document.querySelectorAll('*');
+      allElements.forEach(el => {
+        el.style.pointerEvents = 'auto';
+      });
+    }, 300);
   }
   
+  // 页面加载完成或超时后执行
   window.addEventListener('load', () => {
-    setTimeout(finishLoading, 2000);
+    setTimeout(completeLoading, 2000);
   });
   
-  setTimeout(() => {
-    if(!isFinished) {
-      finishLoading();
-    }
-  }, 5000);
+  // 5秒超时保护
+  setTimeout(completeLoading, 5000);
+  
 } else {
-  // 非首次访问，直接隐藏加载动画
+  // 非首次访问，直接隐藏加载框
   document.getElementById('loading-box').style.display = 'none';
-}</script><script>window.paceOptions = {
+  document.body.classList.add('page-loaded');
+  document.body.style.overflow = 'auto';
+  
+  // 确保可以点击
+  document.body.style.pointerEvents = 'auto';
+}
+
+// 防止点击穿透的额外保护
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    const loadingBox = document.getElementById('loading-box');
+    if (loadingBox && loadingBox.style.display !== 'none') {
+      loadingBox.style.pointerEvents = 'auto';
+    }
+    document.body.style.pointerEvents = 'auto';
+  }, 100);
+});</script><script>window.paceOptions = {
   restartOnPushState: false
 }
 
@@ -268,4 +310,4 @@ btf.addGlobalFn('pjaxSend', () => {
         </li>
       
     </ul>
-  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">1</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-12-04T12:29:32.812Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By 旧木川</span></div><div class="footer_custom_text">一蓑烟雨任平生</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.2"></script><script src="/js/main.js?v=5.5.2"></script><div class="js-pjax"></div><script async data-pjax src="/"></script></div></body></html>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">1</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-12-04T12:33:23.597Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By 旧木川</span></div><div class="footer_custom_text">一蓑烟雨任平生</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.2"></script><script src="/js/main.js?v=5.5.2"></script><div class="js-pjax"></div><script async data-pjax src="/"></script></div></body></html>
